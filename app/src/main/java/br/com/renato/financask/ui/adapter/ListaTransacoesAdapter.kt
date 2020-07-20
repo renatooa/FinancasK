@@ -10,6 +10,7 @@ import br.com.renato.financask.R
 import br.com.renato.financask.extension.formatarData
 import br.com.renato.financask.extension.formatarMoeda
 import br.com.renato.financask.extension.limitaCaracteres
+import br.com.renato.financask.extension.setTextColorCompat
 import br.com.renato.financask.model.Tipo
 import br.com.renato.financask.model.Transacao
 import kotlinx.android.synthetic.main.transacao_item.view.*
@@ -64,7 +65,7 @@ class ListaTransacoesAdapter(
     }
 
     private fun modificarCorValor(view: View, cor: Int) {
-        view.transacao_valor.setTextColor(ContextCompat.getColor(context, cor))
+        view.transacao_valor.setTextColorCompat(context, cor)
     }
 
     override fun getItem(posicao: Int): Transacao {
