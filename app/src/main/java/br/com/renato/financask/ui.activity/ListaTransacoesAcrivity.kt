@@ -58,7 +58,6 @@ class ListaTransacoesAcrivity : AppCompatActivity() {
         val saldo = receitas.subtract(despesas);
 
         popularDadosResumo(receitas, despesas, saldo)
-
         configurarCorTextTotal(saldo)
     }
 
