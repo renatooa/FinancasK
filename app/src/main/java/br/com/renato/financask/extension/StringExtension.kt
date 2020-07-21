@@ -6,6 +6,5 @@ fun String.limitaCaracteres(caracteres: Int):String{
         val startIndex = 0
         return  "${this.substring(startIndex, caracteres)}..."
     }
-
     return  this
 }
