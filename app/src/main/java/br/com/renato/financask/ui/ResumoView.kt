@@ -1,54 +1,57 @@
 package br.com.renato.financask.ui
 
 import android.view.View
+import android.widget.TextView
 import br.com.renato.financask.R
 import br.com.renato.financask.extension.formatarMoeda
 import br.com.renato.financask.extension.setTextColorCompat
-import br.com.renato.financask.model.Tipo
+import br.com.renato.financask.model.Resumo
 import br.com.renato.financask.model.Transacao
 import kotlinx.android.synthetic.main.resumo_card.view.*
 import java.math.BigDecimal
 
-class ResumoView(private val view: View, private val transacoes: List<Transacao>) {
+class ResumoView(
+    private val view: View,
+    transacoes: List<Transacao>
+) {
 
-    fun atualizar(transacoes: List<Transacao>) {
+    private val resumo: Resumo = Resumo(transacoes)
 
-        var despesas: BigDecimal = BigDecimal(0);
-        var receitas: BigDecimal = BigDecimal(0);
+    fun atualizar() {
+        atualizarReceita()
+        atualizarDespesas()
+        atualizarSaldo()
+    }
 
-        for (transacao in transacoes) {
-            if (Tipo.DESPESA == transacao.tipo) {
-                despesas = despesas.plus(transacao.valor)
-            } else {
-                receitas = receitas.plus(transacao.valor)
-            }
+    private fun atualizarSaldo() {
+
+        val saldo: BigDecimal = resumo.calcularTotal
+
+        with(view.resumo_card_total) {
+            text = saldo.formatarMoeda()
+            setTextColorCompat(view.context, corSaldo(saldo))
         }
-
-        val saldo = receitas.subtract(despesas);
-        popularDados(receitas, despesas, saldo)
-        configurarCorTextTotal(saldo)
     }
 
-    fun popularDados(
-        receitas: BigDecimal,
-        despesas: BigDecimal,
-        saldo: BigDecimal
-    ) {
-        view.resumo_card_receita.setText(receitas.formatarMoeda())
-        view.resumo_card_despesa.setText(despesas.formatarMoeda())
-        view.resumo_card_total.setText(saldo.formatarMoeda())
+    private fun atualizarDespesas() {
+        with(view.resumo_card_despesa) {
+            text = resumo.somarDespesas.formatarMoeda()
+            setTextColorCompat(view.context, R.color.despesa)
+        }
     }
 
-    fun configurarCorText() {
-        view.resumo_card_despesa.setTextColorCompat(view.context, R.color.despesa);
-        view.resumo_card_receita.setTextColorCompat(view.context, R.color.receita);
+    private fun atualizarReceita() {
+        with(view.resumo_card_receita) {
+            text = resumo.somarReceitas.formatarMoeda()
+            setTextColorCompat(view.context, R.color.receita)
+        }
     }
 
-    fun configurarCorTextTotal(saldo: BigDecimal = BigDecimal(0)) {
-        if (saldo < BigDecimal(0)) {
-            view.resumo_card_total.setTextColorCompat(view.context, R.color.despesa);
+    private fun TextView.corSaldo(saldo: BigDecimal): Int {
+        if (saldo >= BigDecimal(0)) {
+            return R.color.receita
         } else {
-            view.resumo_card_total.setTextColorCompat(view.context, R.color.colorPrimary);
+            return R.color.despesa
         }
     }
 }
