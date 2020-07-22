@@ -1,6 +1,7 @@
 package br.com.renato.financask.ui.activity
 
 import android.os.Bundle
+import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import br.com.renato.financask.R
@@ -10,20 +11,24 @@ import br.com.renato.financask.model.Transacao
 import br.com.renato.financask.ui.ResumoView
 import br.com.renato.financask.ui.adapter.ListaTransacoesAdapter
 import br.com.renato.financask.ui.dialog.AdicionaTransacaoDialog
+import br.com.renato.financask.ui.dialog.AlteraTransacaoDialog
 import kotlinx.android.synthetic.main.activity_lista_transacoes.*
 
 class ListaTransacoesAcrivity : AppCompatActivity() {
 
     private val transacoes: MutableList<Transacao> = mutableListOf()
+    private lateinit var viewActivity: View
+    private lateinit var resumoView: ResumoView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lista_transacoes);
+        viewActivity = window.decorView
+        resumoView = ResumoView(viewActivity, transacoes)
 
-        atualizar()
+        configurarLista()
+        resumoView.atualizar()
         configurarFab()
-
-
     }
 
     private fun configurarFab() {
@@ -37,13 +42,13 @@ class ListaTransacoesAcrivity : AppCompatActivity() {
     }
 
     private fun exibirAdicionaTransacaoDialogo(tipo: Tipo) {
-        AdicionaTransacaoDialog(window.decorView as ViewGroup, this).exibir(
-            tipo,
-            object : TransacaoDelegate {
-                override fun delegate(transacao: Transacao) {
-                    addTransacao(transacao)
-                }
-            })
+        AdicionaTransacaoDialog(viewActivity as ViewGroup, this)
+            .exibir(tipo,
+                object : TransacaoDelegate {
+                    override fun delegate(transacao: Transacao) {
+                        addTransacao(transacao)
+                    }
+                })
     }
 
     private fun addTransacao(transacao: Transacao) {
@@ -54,17 +59,30 @@ class ListaTransacoesAcrivity : AppCompatActivity() {
 
 
     private fun atualizar() {
-        configuraResumo()
-        configurarLista()
+        resumoView.atualizar()
+        val listaTransacoesAdapter = lista_transacoes_listview.adapter as ListaTransacoesAdapter
+        listaTransacoesAdapter.notifyDataSetChanged()
     }
-
-    private fun configuraResumo() {
-        val resumoView = ResumoView(window.decorView, transacoes)
-        resumoView.atualizar();
-    }
-
 
     private fun configurarLista() {
         lista_transacoes_listview.adapter = ListaTransacoesAdapter(transacoes, this)
+
+        configurarListenerListView();
+    }
+
+    private fun configurarListenerListView() {
+        lista_transacoes_listview.setOnItemClickListener { adapterView, _, posicao, _ ->
+            val transacao: Transacao = adapterView.getItemAtPosition(posicao) as Transacao
+            exibirAlteraTransacaoDialogo(transacao)
+        }
+    }
+
+    private fun exibirAlteraTransacaoDialogo(transacao: Transacao) {
+        AlteraTransacaoDialog(viewActivity as ViewGroup, this, transacao).exibir(object :
+            TransacaoDelegate {
+            override fun delegate(transacao: Transacao) {
+                atualizar()
+            }
+        })
     }
 }

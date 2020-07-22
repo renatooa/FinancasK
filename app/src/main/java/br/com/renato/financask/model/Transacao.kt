@@ -5,9 +5,9 @@ import java.util.Calendar
 
 class Transacao(
     valor: BigDecimal,
-    val categoria: String,
-    val tipo : Tipo = Tipo.DESPESA,
-    val data: Calendar = Calendar.getInstance()
+    var categoria: String,
+    var tipo : Tipo = Tipo.DESPESA,
+    var data: Calendar = Calendar.getInstance()
 ) {
     constructor(valor: BigDecimal, tipo : Tipo):this(valor, "Indefinida", tipo)
 

@@ -12,7 +12,7 @@ import java.math.BigDecimal
 
 class ResumoView(
     private val view: View,
-    transacoes: List<Transacao>
+    private val transacoes: List<Transacao>
 ) {
 
     private val resumo: Resumo = Resumo(transacoes)
