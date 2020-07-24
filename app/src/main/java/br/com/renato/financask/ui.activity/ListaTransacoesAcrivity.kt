@@ -1,10 +1,15 @@
 package br.com.renato.financask.ui.activity
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import br.com.renato.financask.R
+import br.com.renato.financask.dao.TransacaoDao
 import br.com.renato.financask.model.Tipo
 import br.com.renato.financask.model.Transacao
 import br.com.renato.financask.ui.ResumoView
@@ -15,21 +20,25 @@ import kotlinx.android.synthetic.main.activity_lista_transacoes.*
 
 class ListaTransacoesAcrivity : AppCompatActivity() {
 
-    private val transacoes: MutableList<Transacao> = mutableListOf()
+    private val transacaoDao : TransacaoDao = TransacaoDao()
 
-    private val viewActivity: View by lazy {
+    private val transacoes : List<Transacao> by lazy {
+        transacaoDao.transacoes
+    }
+
+    private val viewActivity : View by lazy {
         window.decorView
     }
 
-    private val viewGroupActivity: ViewGroup by lazy {
+    private val viewGroupActivity : ViewGroup by lazy {
         viewActivity as ViewGroup
     }
 
-    private val resumoView: ResumoView by lazy {
+    private val resumoView : ResumoView by lazy {
         ResumoView(viewActivity, transacoes)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lista_transacoes);
 
@@ -48,18 +57,12 @@ class ListaTransacoesAcrivity : AppCompatActivity() {
         }
     }
 
-    private fun exibirAdicionaTransacaoDialogo(tipo: Tipo) {
+    private fun exibirAdicionaTransacaoDialogo(tipo : Tipo) {
         AdicionaTransacaoDialog(viewGroupActivity, this)
             .exibir(tipo)
             { transacaoDelegada ->
-                addTransacao(transacaoDelegada)
+                inserir(transacaoDelegada)
             }
-    }
-
-    private fun addTransacao(transacao: Transacao) {
-        this.transacoes.add(transacao)
-        this.atualizar()
-        lista_transacoes_adiciona_menu.close(true)
     }
 
 
@@ -76,19 +79,56 @@ class ListaTransacoesAcrivity : AppCompatActivity() {
     }
 
     private fun configurarListenerListView() {
-        lista_transacoes_listview.setOnItemClickListener { adapterView, _, posicao, _ ->
-            val transacao: Transacao = adapterView.getItemAtPosition(posicao) as Transacao
-            exibirAlteraTransacaoDialogo(posicao, transacao)
+
+        with(lista_transacoes_listview) {
+
+            setOnItemClickListener { adapterView, _, posicao, _ ->
+                val transacao : Transacao = adapterView.getItemAtPosition(posicao) as Transacao
+                exibirAlteraTransacaoDialogo(posicao, transacao)
+            }
+
+            setOnCreateContextMenuListener({ menu, viee, menuInfo ->
+                menu.add(Menu.NONE, 1, Menu.NONE, getString(R.string.remover))
+            })
         }
     }
 
-    private fun exibirAlteraTransacaoDialogo(posicao: Int, transacao: Transacao) {
+    override fun onContextItemSelected(item : MenuItem) : Boolean {
+
+        val idMenu = item.itemId
+        val infoMenu = item.menuInfo as AdapterView.AdapterContextMenuInfo
+
+        if (idMenu == 1) {
+            remover(infoMenu.position)
+        }
+        return super.onContextItemSelected(item)
+    }
+
+    private fun exibirAlteraTransacaoDialogo(posicao : Int, transacao : Transacao) {
         AlteraTransacaoDialog(viewGroupActivity, this, transacao).exibir(
             transacao.tipo,
             delegate =
             { transacaoDelegada ->
-                transacoes[posicao] = transacaoDelegada
-                atualizar()
+                alterar(posicao, transacaoDelegada)
             })
+    }
+
+    private fun remover(posicao : Int) {
+        transacaoDao.remover(posicao)
+        atualizar()
+    }
+
+    private fun alterar(
+        posicao : Int,
+        transacaoDelegada : Transacao
+    ) {
+        transacaoDao.alterar(posicao, transacaoDelegada)
+        atualizar()
+    }
+
+    private fun inserir(transacao : Transacao) {
+        transacaoDao.inserir(transacao)
+        this.atualizar()
+        lista_transacoes_adiciona_menu.close(true)
     }
 }
